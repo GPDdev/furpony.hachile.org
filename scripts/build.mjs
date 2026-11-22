@@ -1,10 +1,12 @@
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const origin = 'https://furpony.hachile.org';
+const assetVersion = createHash('sha256').update(readFileSync(resolve(root,'assets/site.css'))).update(readFileSync(resolve(root,'assets/mark.svg'))).digest('hex').slice(0,10);
 export const languages = ['zh', 'en', 'de'];
 export const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
 export const route = (lang, slug = '') => `${lang === 'zh' ? '/' : `/${lang}/`}${slug ? `articles/${slug}/` : ''}`;
@@ -47,7 +49,7 @@ function langLinks(lang, slug) {
 }
 function header(lang, slug) {
   const t = text[lang], home = route(lang);
-  return `<a class="skip" href="#main">${t.skip}</a><header class="header wrap"><a class="brand" href="${home}" aria-label="Furpony Institute"><img src="/assets/mark.svg" width="43" height="43" alt=""><span><strong>Furpony</strong><small>INSTITUTE</small></span></a><div class="header-right"><nav class="nav" aria-label="${t.journal}"><a href="${home}#journal">${t.journal}</a><a href="${home}#about">${t.about}</a><a href="${home}#contribute">${t.contribute}</a></nav>${langLinks(lang,slug)}</div></header>`;
+  return `<a class="skip" href="#main">${t.skip}</a><header class="header wrap"><a class="brand" href="${home}" aria-label="Furpony Institute"><img src="/assets/mark.svg?v=${assetVersion}" width="43" height="43" alt=""><span><strong>Furpony</strong><small>INSTITUTE</small></span></a><div class="header-right"><nav class="nav" aria-label="${t.journal}"><a href="${home}#journal">${t.journal}</a><a href="${home}#about">${t.about}</a><a href="${home}#contribute">${t.contribute}</a></nav>${langLinks(lang,slug)}</div></header>`;
 }
 function footer(lang) {
   const t = text[lang];
@@ -59,7 +61,7 @@ function submission(lang) {
 }
 function layout(lang, title, description, content, slug = '') {
   const url = origin + route(lang,slug);
-  return `<!doctype html>\n<html lang="${text[lang].htmlLang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f8f7f2"><title>${escape(title)}</title><meta name="description" content="${escape(description)}"><link rel="canonical" href="${url}">${languages.map(key => `<link rel="alternate" hreflang="${text[key].htmlLang}" href="${origin}${route(key,slug)}">`).join('')}<link rel="alternate" hreflang="x-default" href="${origin}${route('zh',slug)}"><meta property="og:type" content="${slug ? 'article' : 'website'}"><meta property="og:title" content="${escape(title)}"><meta property="og:description" content="${escape(description)}"><meta property="og:url" content="${url}"><meta property="og:site_name" content="Furpony Institute"><link rel="icon" type="image/svg+xml" href="/assets/mark.svg"><link rel="stylesheet" href="/assets/site.css"><link rel="alternate" type="application/rss+xml" title="Furpony Institute" href="${route(lang)}feed.xml"><script src="/assets/site.js" defer></script></head><body>${header(lang,slug)}${content}${footer(lang)}</body></html>\n`;
+  return `<!doctype html>\n<html lang="${text[lang].htmlLang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f8f7f2"><title>${escape(title)}</title><meta name="description" content="${escape(description)}"><link rel="canonical" href="${url}">${languages.map(key => `<link rel="alternate" hreflang="${text[key].htmlLang}" href="${origin}${route(key,slug)}">`).join('')}<link rel="alternate" hreflang="x-default" href="${origin}${route('zh',slug)}"><meta property="og:type" content="${slug ? 'article' : 'website'}"><meta property="og:title" content="${escape(title)}"><meta property="og:description" content="${escape(description)}"><meta property="og:url" content="${url}"><meta property="og:site_name" content="Furpony Institute"><link rel="icon" type="image/svg+xml" href="/assets/mark.svg?v=${assetVersion}"><link rel="stylesheet" href="/assets/site.css?v=${assetVersion}"><link rel="alternate" type="application/rss+xml" title="Furpony Institute" href="${route(lang)}feed.xml"><script src="/assets/site.js" defer></script></head><body>${header(lang,slug)}${content}${footer(lang)}</body></html>\n`;
 }
 function homePage(lang, posts) {
   const t = text[lang];
