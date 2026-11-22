@@ -1,5 +1,6 @@
 {
   "name": "furpony-institute",
+  "description": "An independent Chinese, English and German journal exploring Furry and Brony cultures.",
   "private": true,
   "type": "module",
   "scripts": {
